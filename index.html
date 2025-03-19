@@ -5,57 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TapMillion</title>
     <style>
-        body {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: Arial, sans-serif;
+        }
+        body {
+            background: linear-gradient(to bottom, #FFD700, #FF8C00);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            margin: 0;
-            background: linear-gradient(to bottom, #ffcc00, #ff6600);
-            color: #fff;
+            overflow: hidden;
             text-align: center;
         }
         .container {
-            flex: 1;
+            width: 100%;
+            max-width: 400px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            width: 100%;
         }
         #tapButton {
-            width: 180px;
-            height: 180px;
-            background: url('https://via.placeholder.com/180?text=Хомяк') no-repeat center;
+            width: 160px;
+            height: 160px;
+            background: url('https://via.placeholder.com/160?text=Хомяк') no-repeat center;
             background-size: cover;
-            border: 5px solid #fff;
+            border: 4px solid #fff;
             border-radius: 50%;
             cursor: pointer;
             transition: transform 0.1s;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
         }
         #tapButton:active {
             transform: scale(0.9);
         }
         #coins, #energy {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
-            margin-top: 15px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        .boost-btn {
-            margin-top: 15px;
-            padding: 10px 20px;
-            background: #ff4400;
-            border: none;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            margin-top: 10px;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
         }
         .bottom-nav {
             position: fixed;
@@ -64,82 +55,68 @@
             display: flex;
             justify-content: space-around;
             background: rgba(0, 0, 0, 0.8);
-            padding: 10px 0;
+            padding: 12px 0;
         }
         .nav-btn {
             color: white;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            padding: 10px;
+        }
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 80vh;
+        }
+        .active {
+            display: flex;
         }
     </style>
 </head>
 <body>
-    <div class="container" id="playScreen">
-        <button id="tapButton"></button>
-        <div id="coins">Монет: 0</div>
-        <div id="energy">Энергия: 1000/1000</div>
-        <button class="boost-btn" id="boost">X2 на 30 сек</button>
+    <div class="container">
+        <div id="playScreen" class="screen active">
+            <button id="tapButton"></button>
+            <div id="coins">Монет: 0</div>
+            <div id="energy">Энергия: 1000/1000</div>
+        </div>
+        <div id="tasksScreen" class="screen">
+            <h2>Задания</h2>
+            <p>Подпишись на соцсети и получи бонус!</p>
+        </div>
+        <div id="friendsScreen" class="screen">
+            <h2>Друзья</h2>
+            <p>Приглашай друзей и зарабатывай монеты!</p>
+        </div>
     </div>
-    
-    <div class="container" id="tasksScreen" style="display:none;">
-        <h2>Задания</h2>
-        <p>Подпишись на соцсети и получи бонус!</p>
-    </div>
-    
-    <div class="container" id="friendsScreen" style="display:none;">
-        <h2>Друзья</h2>
-        <p>Приглашай друзей и получай бонусные монеты!</p>
-    </div>
-
     <div class="bottom-nav">
-        <div class="nav-btn" onclick="showScreen('playScreen')">Play</div>
-        <div class="nav-btn" onclick="showScreen('tasksScreen')">Tasks</div>
-        <div class="nav-btn" onclick="showScreen('friendsScreen')">Friends</div>
+        <div class="nav-btn" onclick="switchScreen('playScreen')">Play</div>
+        <div class="nav-btn" onclick="switchScreen('tasksScreen')">Tasks</div>
+        <div class="nav-btn" onclick="switchScreen('friendsScreen')">Friends</div>
     </div>
-    
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-
         let coins = parseInt(localStorage.getItem('coins')) || 0;
         let energy = parseInt(localStorage.getItem('energy')) || 1000;
         const maxEnergy = 1000;
-        let boostActive = false;
-        
-        const coinsDisplay = document.getElementById('coins');
-        const energyDisplay = document.getElementById('energy');
-        const tapButton = document.getElementById('tapButton');
-        const boostButton = document.getElementById('boost');
 
         function updateUI() {
-            coinsDisplay.textContent = `Монет: ${coins}`;
-            energyDisplay.textContent = `Энергия: ${energy}/${maxEnergy}`;
+            document.getElementById('coins').textContent = `Монет: ${coins}`;
+            document.getElementById('energy').textContent = `Энергия: ${energy}/${maxEnergy}`;
             localStorage.setItem('coins', coins);
             localStorage.setItem('energy', energy);
         }
 
-        tapButton.addEventListener('click', () => {
+        document.getElementById('tapButton').addEventListener('click', () => {
             if (energy > 0) {
-                coins += boostActive ? 2 : 1;
+                coins += 1;
                 energy -= 1;
                 updateUI();
             } else {
                 alert('Энергия закончилась! Подожди немного.');
-            }
-        });
-
-        boostButton.addEventListener('click', () => {
-            if (!boostActive) {
-                boostActive = true;
-                boostButton.disabled = true;
-                boostButton.style.opacity = 0.5;
-                setTimeout(() => {
-                    boostActive = false;
-                    boostButton.disabled = false;
-                    boostButton.style.opacity = 1;
-                }, 30000);
             }
         });
 
@@ -150,11 +127,11 @@
             }
         }, 1000);
 
-        function showScreen(screenId) {
-            document.querySelectorAll('.container').forEach(screen => {
-                screen.style.display = 'none';
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
             });
-            document.getElementById(screenId).style.display = 'flex';
+            document.getElementById(screenId).classList.add('active');
         }
 
         updateUI();
